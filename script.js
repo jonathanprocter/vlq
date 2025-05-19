@@ -20,9 +20,17 @@ const lifeAreas2 = [
 let journalEntries = [];
 let currentStep = 0;
 const steps = ['intro','vlq1','vlq2','results','journal'];
+let currentSlide1 = 0;
+let currentSlide2 = 0;
 
 function updateProgress() {
-    const progress = (currentStep / (steps.length - 1)) * 100;
+    let offset = 0;
+    if (currentStep === 1) {
+        offset = currentSlide1 / lifeAreas1.length;
+    } else if (currentStep === 2) {
+        offset = currentSlide2 / lifeAreas2.length;
+    }
+    const progress = ((currentStep + offset) / (steps.length - 1)) * 100;
     document.getElementById('progressBar').style.width = progress + '%';
 }
 
@@ -37,11 +45,12 @@ function attachSlider(input) {
 function createVlq1() {
     const form = document.getElementById('vlq1Form');
     lifeAreas1.forEach(area => {
-        const div = document.createElement('div');
-        div.innerHTML = `<label>${area} Importance: <input type="range" min="1" max="10" value="5" name="imp-${area}"><span class="slider-value">5</span></label><br>`+
+        const slide = document.createElement('div');
+        slide.className = 'slide';
+        slide.innerHTML = `<label>${area} Importance: <input type="range" min="1" max="10" value="5" name="imp-${area}"><span class="slider-value">5</span></label><br>`+
                         `<label>${area} Consistency: <input type="range" min="1" max="10" value="5" name="cons-${area}"><span class="slider-value">5</span></label>`;
-        form.appendChild(div);
-        div.querySelectorAll('input[type="range"]').forEach(attachSlider);
+        form.appendChild(slide);
+        slide.querySelectorAll('input[type="range"]').forEach(attachSlider);
     });
 }
 
@@ -49,20 +58,45 @@ function createVlq2() {
     const form = document.getElementById('vlq2Form');
     const aspects = ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'];
     lifeAreas2.forEach(area => {
+        const slide = document.createElement('div');
+        slide.className = 'slide';
         const det = document.createElement('details');
         det.innerHTML = `<summary>${area}</summary>`+
             aspects.map(q => `<label>${q}: <input type="range" min="1" max="10" value="5" name="${q}-${area}"><span class="slider-value">5</span></label>`).join('<br>');
-        form.appendChild(det);
-        det.querySelectorAll('input[type="range"]').forEach(attachSlider);
+        slide.appendChild(det);
+        form.appendChild(slide);
+        slide.querySelectorAll('input[type="range"]').forEach(attachSlider);
     });
     // Add prioritization prompts
     form.innerHTML += `<h3>Prioritization</h3><p>Which areas are most important to you right now?</p><textarea name="priority"></textarea>`;
+}
+
+function scrollVlq1() {
+    const slides = document.querySelectorAll('#vlq1Form .slide');
+    if (slides[currentSlide1]) {
+        slides[currentSlide1].scrollIntoView({behavior: 'smooth', inline: 'start'});
+    }
+}
+
+function scrollVlq2() {
+    const slides = document.querySelectorAll('#vlq2Form .slide');
+    if (slides[currentSlide2]) {
+        slides[currentSlide2].scrollIntoView({behavior: 'smooth', inline: 'start'});
+    }
 }
 
 function showSection(id) {
     document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
     currentStep = steps.indexOf(id);
+    if (id === 'vlq1') {
+        currentSlide1 = 0;
+        scrollVlq1();
+    }
+    if (id === 'vlq2') {
+        currentSlide2 = 0;
+        scrollVlq2();
+    }
     updateProgress();
 }
 
@@ -181,6 +215,66 @@ function setup() {
         showSection('results');
         renderCharts(v1,v2);
         generateNarrative(v1,v2);
+    });
+    document.getElementById('vlq1NextSlide').addEventListener('click', () => {
+        if (currentSlide1 < lifeAreas1.length - 1) {
+            currentSlide1++;
+            scrollVlq1();
+            updateProgress();
+        }
+    });
+    document.getElementById('vlq1PrevSlide').addEventListener('click', () => {
+        if (currentSlide1 > 0) {
+            currentSlide1--;
+            scrollVlq1();
+            updateProgress();
+        }
+    });
+    document.getElementById('vlq2NextSlide').addEventListener('click', () => {
+        if (currentSlide2 < lifeAreas2.length - 1) {
+            currentSlide2++;
+            scrollVlq2();
+            updateProgress();
+        }
+    });
+    document.getElementById('vlq2PrevSlide').addEventListener('click', () => {
+        if (currentSlide2 > 0) {
+            currentSlide2--;
+            scrollVlq2();
+            updateProgress();
+        }
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+            if (!document.getElementById('vlq1').classList.contains('hidden')) {
+                if (currentSlide1 < lifeAreas1.length - 1) {
+                    currentSlide1++;
+                    scrollVlq1();
+                    updateProgress();
+                }
+            } else if (!document.getElementById('vlq2').classList.contains('hidden')) {
+                if (currentSlide2 < lifeAreas2.length - 1) {
+                    currentSlide2++;
+                    scrollVlq2();
+                    updateProgress();
+                }
+            }
+        }
+        if (e.key === 'ArrowLeft') {
+            if (!document.getElementById('vlq1').classList.contains('hidden')) {
+                if (currentSlide1 > 0) {
+                    currentSlide1--;
+                    scrollVlq1();
+                    updateProgress();
+                }
+            } else if (!document.getElementById('vlq2').classList.contains('hidden')) {
+                if (currentSlide2 > 0) {
+                    currentSlide2--;
+                    scrollVlq2();
+                    updateProgress();
+                }
+            }
+        }
     });
     document.getElementById('journalBtn').addEventListener('click', () => showSection('journal'));
     document.getElementById('saveJournal').addEventListener('click', saveJournal);

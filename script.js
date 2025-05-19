@@ -1,187 +1,157 @@
-const lifeAreas1 = [
-    'Family Relationships',
-    'Marriage/Couples/Intimacy',
+const { useState, useEffect } = React;
+
+const domains = [
+    'Family',
+    'Marriage/Relationships',
     'Parenting',
-    'Friends/Social Life',
+    'Friendship',
     'Work',
-    'Education/Training',
-    'Recreation/Fun',
+    'Education',
+    'Recreation',
     'Spirituality',
-    'Citizenship/Community Life',
-    'Physical Self-Care'
+    'Citizenship',
+    'Physical self-care'
 ];
 
-const lifeAreas2 = [
-    'Family', 'Romantic', 'Parenting', 'Friends',
-    'Work', 'Education', 'Recreation', 'Spirituality',
-    'Citizenship', 'Health', 'Self-Care', 'Art'
-];
+const extras = ['Finances', 'Environmental issues'];
 
-let journalEntries = [];
-
-function createVlq1() {
-    const form = document.getElementById('vlq1Form');
-    lifeAreas1.forEach(area => {
-        const div = document.createElement('div');
-        div.innerHTML = `<label>${area} Importance (1-10): <input type="number" min="1" max="10" name="imp-${area}"></label><br>`+
-                        `<label>${area} Consistency (1-10): <input type="number" min="1" max="10" name="cons-${area}"></label>`;
-        form.appendChild(div);
-    });
+function Intro({ onStart }) {
+    return (
+        <section>
+            <img className="hero" src="https://source.unsplash.com/featured/?zen,nature" alt="Zen nature" />
+            <p>Welcome to a mindful exploration of your values. Take a deep breath, relax, and move at your own pace.</p>
+            <p>You can also download the original questionnaire PDFs:</p>
+            <ul className="pdf-links">
+                <li><a href="VLQ-1.pdf" target="_blank">VLQ-1 Questionnaire</a></li>
+                <li><a href="VLQ-2.pdf" target="_blank">VLQ-2 Questionnaire</a></li>
+            </ul>
+            <button onClick={onStart}>Begin</button>
+        </section>
+    );
 }
 
-function createVlq2() {
-    const form = document.getElementById('vlq2Form');
-    lifeAreas2.forEach(area => {
-        const div = document.createElement('div');
-        div.innerHTML = `<h3>${area}</h3>`+
-            ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern']
-            .map(q => `<label>${q} (1-10): <input type="number" min="1" max="10" name="${q}-${area}"></label>`)
-            .join('<br>');
-        form.appendChild(div);
-    });
-    // Add prioritization prompts
-    form.innerHTML += `<h3>Prioritization</h3><p>Which areas are most important to you right now?</p><textarea name="priority"></textarea>`;
+function ImportanceForm({ values, onChange, onToggle, onNext }) {
+    return (
+        <section>
+            <h2>Rate Importance (1-10)</h2>
+            {values.map(v => (
+                <label key={v.domain}>
+                    <input type="checkbox" checked={v.enabled} onChange={() => onToggle(v.domain)} /> {v.domain}
+                    <input type="number" min="1" max="10" value={v.importance} onChange={e => onChange(v.domain, Number(e.target.value))} />
+                </label>
+            ))}
+            <button onClick={onNext}>Next</button>
+        </section>
+    );
 }
 
-function showSection(id) {
-    document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
+function ConsistencyForm({ values, onChange, onBack, onNext }) {
+    return (
+        <section>
+            <h2>Rate Consistency (1-10)</h2>
+            {values.map(v => (
+                <label key={v.domain}>{v.domain}
+                    <input type="number" min="1" max="10" value={v.consistency} onChange={e => onChange(v.domain, Number(e.target.value))} />
+                </label>
+            ))}
+            <button onClick={onBack}>Back</button>
+            <button onClick={onNext}>See Results</button>
+        </section>
+    );
 }
 
-function gatherVlq1() {
-    const form = new FormData(document.getElementById('vlq1Form'));
-    const data = lifeAreas1.map(area => ({
-        area,
-        importance: Number(form.get(`imp-${area}`)),
-        consistency: Number(form.get(`cons-${area}`))
-    }));
-    return data;
-}
-
-function gatherVlq2() {
-    const form = new FormData(document.getElementById('vlq2Form'));
-    const aspects = ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'];
-    const data = lifeAreas2.map(area => {
-        let obj = { area };
-        aspects.forEach(a => {
-            obj[a] = Number(form.get(`${a}-${area}`));
+function Results({ values, onBack }) {
+    useEffect(() => {
+        const labels = values.map(v => v.domain);
+        const importance = values.map(v => v.importance);
+        const consistency = values.map(v => v.consistency);
+        const ctx = document.getElementById('radar').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Importance', data: importance, backgroundColor: 'rgba(108,141,122,0.2)', borderColor: '#6c8d7a' },
+                    { label: 'Consistency', data: consistency, backgroundColor: 'rgba(205,224,213,0.2)', borderColor: '#cde0d5' }
+                ]
+            },
+            options: { responsive: true }
         });
-        return obj;
-    });
-    const priority = form.get('priority');
-    return { data, priority };
-}
+    }, [values]);
 
-function renderCharts(v1, v2) {
-    const ctxRadar = document.getElementById('radarChart').getContext('2d');
-    new Chart(ctxRadar, {
-        type: 'radar',
-        data: {
-            labels: v1.map(d => d.area),
-            datasets: [
-                {
-                    label: 'Importance',
-                    data: v1.map(d => d.importance),
-                    backgroundColor: 'rgba(108,141,122,0.2)',
-                    borderColor: '#6c8d7a'
-                },
-                {
-                    label: 'Consistency',
-                    data: v1.map(d => d.consistency),
-                    backgroundColor: 'rgba(205,224,213,0.2)',
-                    borderColor: '#cde0d5'
-                }
-            ]
-        },
-        options: { responsive: true }
-    });
-
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: lifeAreas2,
-            datasets: ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'].map((a,i)=>({
-                label: a,
-                data: v2.data.map(d=>d[a]),
-                backgroundColor: `hsla(${i*40},70%,70%,0.5)`
-            }))
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
-    });
-
-    const ctxHeat = document.getElementById('heatMap').getContext('2d');
-    new Chart(ctxHeat, {
-        type: 'bar',
-        data: {
-            labels: v1.map(d=>d.area),
-            datasets: [{
-                label: 'Alignment (Importance - Consistency)',
-                data: v1.map(d=>d.importance-d.consistency),
-                backgroundColor: v1.map(d=>`rgba(255,99,132,${Math.abs(d.importance-d.consistency)/10})`)
-            }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-}
-
-function generateNarrative(v1, v2) {
-    const topAreas = [...v1].sort((a,b)=>b.importance-a.importance).slice(0,3).map(d=>d.area);
-    const goodAlign = v1.filter(d=>Math.abs(d.importance-d.consistency)<=2).map(d=>d.area);
-    const poorAlign = v1.filter(d=>Math.abs(d.importance-d.consistency)>2).map(d=>d.area);
-    const div = document.getElementById('narrative');
-    div.innerHTML = `<p>Your highest values include: <strong>${topAreas.join(', ')}</strong>.</p>`+
-        `<p>These areas show good alignment between values and actions: <strong>${goodAlign.join(', ')||'None'}</strong>.</p>`+
-        `<p>These areas might need attention: <strong>${poorAlign.join(', ')||'None'}</strong>.</p>`+
-        `<p>You indicated priority in: <em>${v2.priority}</em>.</p>`+
-        `<p>Consider journaling your thoughts below.</p>`;
-}
-
-function saveJournal() {
-    const text = document.getElementById('journalEntry').value.trim();
-    if (text) {
-        journalEntries.push(text);
-        const li = document.createElement('li');
-        li.textContent = text;
-        document.getElementById('journalList').appendChild(li);
-        document.getElementById('journalEntry').value = '';
-    }
-}
-
-function setup() {
-    createVlq1();
-    createVlq2();
-
-    document.getElementById('startBtn').addEventListener('click', () => showSection('vlq1'));
-    document.getElementById('vlq1Next').addEventListener('click', () => showSection('vlq2'));
-    document.getElementById('vlq2Next').addEventListener('click', () => {
-        const v1 = gatherVlq1();
-        const v2 = gatherVlq2();
-        showSection('results');
-        renderCharts(v1,v2);
-        generateNarrative(v1,v2);
-    });
-    document.getElementById('journalBtn').addEventListener('click', () => showSection('journal'));
-    document.getElementById('saveJournal').addEventListener('click', saveJournal);
-
-    document.getElementById('save').addEventListener('click', () => {
-        const data = {
-            vlq1: gatherVlq1(),
-            vlq2: gatherVlq2(),
-            journal: journalEntries
-        };
-        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    function csv() {
+        const rows = ['Domain,Importance,Consistency,Discrepancy'];
+        values.forEach(v => rows.push(`${v.domain},${v.importance},${v.consistency},${v.importance - v.consistency}`));
+        const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'vlq-results.json';
+        a.download = 'vlq-results.csv';
         a.click();
-    });
+    }
 
-    document.getElementById('print').addEventListener('click', () => window.print());
-    document.getElementById('email').addEventListener('click', () => {
-        const body = encodeURIComponent(document.getElementById('narrative').innerText);
-        location.href = `mailto:?subject=My VLQ Results&body=${body}`;
-    });
+    function pdf() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text('Valued Living Questionnaire Results', 10, 10);
+        values.forEach((v, i) => {
+            doc.text(`${v.domain}: Importance ${v.importance} Consistency ${v.consistency}`, 10, 20 + i * 10);
+        });
+        doc.save('vlq-results.pdf');
+    }
+
+    const narrative = (() => {
+        const discrepancies = values.map(v => ({ domain: v.domain, d: v.importance - v.consistency }));
+        const poor = discrepancies.filter(d => Math.abs(d.d) > 2).map(d => d.domain);
+        return poor.length ? `Consider focusing on: ${poor.join(', ')}` : 'Great alignment across domains!';
+    })();
+
+    return (
+        <section>
+            <h2>Your Results</h2>
+            <canvas id="radar"></canvas>
+            <p>{narrative}</p>
+            <button onClick={pdf}>Download PDF</button>
+            <button onClick={csv}>Download CSV</button>
+            <button onClick={onBack}>Back</button>
+        </section>
+    );
 }
 
-window.onload = setup;
+function App() {
+    const [step, setStep] = useState(0);
+    const [dark, setDark] = useState(() => localStorage.getItem('vlqDark') === '1');
+    const [font, setFont] = useState(() => Number(localStorage.getItem('vlqFont')) || 16);
+    const [values, setValues] = useState(() => {
+        const stored = localStorage.getItem('vlqValues');
+        if (stored) return JSON.parse(stored);
+        return domains.concat(extras).map(d => ({ domain: d, importance: 5, consistency: 5, enabled: domains.includes(d) }));
+    });
+
+    useEffect(() => { localStorage.setItem('vlqValues', JSON.stringify(values)); }, [values]);
+    useEffect(() => { localStorage.setItem('vlqDark', dark ? '1' : '0'); document.body.classList.toggle('dark', dark); }, [dark]);
+    useEffect(() => { localStorage.setItem('vlqFont', font); document.documentElement.style.setProperty('--font-size', font + 'px'); }, [font]);
+
+    const active = values.filter(v => v.enabled);
+
+    const toggleDomain = domain => setValues(v => v.map(d => d.domain === domain ? { ...d, enabled: !d.enabled } : d));
+    const setImp = (domain, val) => setValues(v => v.map(d => d.domain === domain ? { ...d, importance: val } : d));
+    const setCons = (domain, val) => setValues(v => v.map(d => d.domain === domain ? { ...d, consistency: val } : d));
+
+    return (
+        <div>
+            <header><h1>Valued Living Questionnaire</h1></header>
+            <div className="controls">
+                <button onClick={() => setDark(!dark)}>{dark ? 'Light' : 'Dark'} Mode</button>
+                <label>Text Size <input type="range" min="14" max="22" value={font} onChange={e => setFont(Number(e.target.value))} /></label>
+            </div>
+            <div className="progress"><div className="progress-bar" style={{ width: (step / 3) * 100 + '%' }} /></div>
+            {step === 0 && <Intro onStart={() => setStep(1)} />}
+            {step === 1 && <ImportanceForm values={values} onChange={setImp} onToggle={toggleDomain} onNext={() => setStep(2)} />}
+            {step === 2 && <ConsistencyForm values={active} onChange={setCons} onBack={() => setStep(1)} onNext={() => setStep(3)} />}
+            {step === 3 && <Results values={active} onBack={() => setStep(2)} />}
+            <footer><p>All data stored locally. No information is sent to any server.</p></footer>
+        </div>
+    );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));

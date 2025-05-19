@@ -71,3 +71,33 @@ canvas {
     max-width: 600px;
     margin: 20px auto;
 }
+
+form div {
+    margin-bottom: 15px;
+}
+form label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+form input[type="number"] {
+    width: 60px;
+}
+form h3 {
+    margin-bottom: 5px;
+    margin-top: 15px;
+}
+
+.pdf-list {
+    margin-top: 10px;
+}
+
+.pdf-list a {
+    color: #6c8d7a;
+    text-decoration: none;
+}
+
+.pdf-list a:hover {
+    text-decoration: underline;
+}
+

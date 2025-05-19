@@ -18,26 +18,42 @@ const lifeAreas2 = [
 ];
 
 let journalEntries = [];
+let currentStep = 0;
+const steps = ['intro','vlq1','vlq2','results','journal'];
+
+function updateProgress() {
+    const progress = (currentStep / (steps.length - 1)) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+}
+
+function attachSlider(input) {
+    const span = input.nextElementSibling;
+    span.textContent = input.value;
+    input.addEventListener('input', () => {
+        span.textContent = input.value;
+    });
+}
 
 function createVlq1() {
     const form = document.getElementById('vlq1Form');
     lifeAreas1.forEach(area => {
         const div = document.createElement('div');
-        div.innerHTML = `<label>${area} Importance (1-10): <input type="number" min="1" max="10" name="imp-${area}"></label><br>`+
-                        `<label>${area} Consistency (1-10): <input type="number" min="1" max="10" name="cons-${area}"></label>`;
+        div.innerHTML = `<label>${area} Importance: <input type="range" min="1" max="10" value="5" name="imp-${area}"><span class="slider-value">5</span></label><br>`+
+                        `<label>${area} Consistency: <input type="range" min="1" max="10" value="5" name="cons-${area}"><span class="slider-value">5</span></label>`;
         form.appendChild(div);
+        div.querySelectorAll('input[type="range"]').forEach(attachSlider);
     });
 }
 
 function createVlq2() {
     const form = document.getElementById('vlq2Form');
+    const aspects = ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'];
     lifeAreas2.forEach(area => {
-        const div = document.createElement('div');
-        div.innerHTML = `<h3>${area}</h3>`+
-            ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern']
-            .map(q => `<label>${q} (1-10): <input type="number" min="1" max="10" name="${q}-${area}"></label>`)
-            .join('<br>');
-        form.appendChild(div);
+        const det = document.createElement('details');
+        det.innerHTML = `<summary>${area}</summary>`+
+            aspects.map(q => `<label>${q}: <input type="range" min="1" max="10" value="5" name="${q}-${area}"><span class="slider-value">5</span></label>`).join('<br>');
+        form.appendChild(det);
+        det.querySelectorAll('input[type="range"]').forEach(attachSlider);
     });
     // Add prioritization prompts
     form.innerHTML += `<h3>Prioritization</h3><p>Which areas are most important to you right now?</p><textarea name="priority"></textarea>`;
@@ -46,6 +62,8 @@ function createVlq2() {
 function showSection(id) {
     document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
+    currentStep = steps.indexOf(id);
+    updateProgress();
 }
 
 function gatherVlq1() {
@@ -152,8 +170,11 @@ function setup() {
     createVlq1();
     createVlq2();
 
+    updateProgress();
+
     document.getElementById('startBtn').addEventListener('click', () => showSection('vlq1'));
     document.getElementById('vlq1Next').addEventListener('click', () => showSection('vlq2'));
+    document.getElementById('vlq2Prev').addEventListener('click', () => showSection('vlq1'));
     document.getElementById('vlq2Next').addEventListener('click', () => {
         const v1 = gatherVlq1();
         const v2 = gatherVlq2();

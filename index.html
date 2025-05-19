@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valued Living Questionnaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Valued Living Questionnaire</h1>
+        <p class="subtitle">A reflective journey into your values</p>
+    </header>
+    <main id="app">
+        <!-- Section: Introduction -->
+        <section id="intro" class="active">
+            <img src="https://source.unsplash.com/featured/?zen,nature" alt="Zen nature" class="hero">
+            <p>Welcome to a mindful exploration of your values. Take a deep breath, relax, and move at your own pace.</p>
+            <button id="startBtn">Begin</button>
+        </section>
+
+        <!-- Section: VLQ-1 -->
+        <section id="vlq1" class="hidden">
+            <h2>VLQ-1: Importance & Consistency</h2>
+            <form id="vlq1Form"></form>
+            <button id="vlq1Next">Continue</button>
+        </section>
+
+        <!-- Section: VLQ-2 -->
+        <section id="vlq2" class="hidden">
+            <h2>VLQ-2: Values in Depth</h2>
+            <form id="vlq2Form"></form>
+            <button id="vlq2Next">See Results</button>
+        </section>
+
+        <!-- Section: Results -->
+        <section id="results" class="hidden">
+            <h2>Your Values Insights</h2>
+            <canvas id="radarChart"></canvas>
+            <canvas id="barChart"></canvas>
+            <canvas id="heatMap"></canvas>
+            <div id="narrative"></div>
+            <button id="journalBtn">Go to Values Journal</button>
+        </section>
+
+        <!-- Section: Journal -->
+        <section id="journal" class="hidden">
+            <h2>Values Journal</h2>
+            <textarea id="journalEntry" placeholder="Reflect on your values..."></textarea>
+            <button id="saveJournal">Save Entry</button>
+            <ul id="journalList"></ul>
+        </section>
+    </main>
+
+    <footer>
+        <button id="save">Save</button>
+        <button id="print">Print</button>
+        <button id="email">Email</button>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

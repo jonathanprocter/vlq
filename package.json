@@ -1,0 +1,13 @@
+{
+  "name": "vlq",
+  "version": "1.0.0",
+  "description": "Valued Living Questionnaires (VLQ-1 and VLQ-2) web interface",
+  "private": true,
+  "scripts": {
+    "start": "lite-server",
+    "build": "echo \"No build step required\""
+  },
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}

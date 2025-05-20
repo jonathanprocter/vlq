@@ -3,6 +3,20 @@
  * Handles core application logic, form validation, and data processing
  */
 
+// Standard VLQ-1 life domains used throughout the app
+const VLQ1_DOMAINS = [
+    'family',
+    'marriage',
+    'parenting',
+    'friends',
+    'work',
+    'education',
+    'recreation',
+    'spirituality',
+    'community',
+    'selfcare'
+];
+
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize navigation
@@ -279,18 +293,13 @@ function processVLQ1FormData() {
         timestamp: new Date().toISOString()
     };
 
-    // Process importance ratings
-    const importanceRadios = form.querySelectorAll('input[name^="importance_"]:checked');
-    importanceRadios.forEach(radio => {
-        const domain = radio.name.replace('importance_', '');
-        formData.importance[domain] = parseInt(radio.value);
-    });
+    // Capture ratings for every standard domain
+    VLQ1_DOMAINS.forEach(domain => {
+        const impInput = form.querySelector(`input[name="importance_${domain}"]:checked`);
+        const conInput = form.querySelector(`input[name="consistency_${domain}"]:checked`);
 
-    // Process consistency ratings
-    const consistencyRadios = form.querySelectorAll('input[name^="consistency_"]:checked');
-    consistencyRadios.forEach(radio => {
-        const domain = radio.name.replace('consistency_', '');
-        formData.consistency[domain] = parseInt(radio.value);
+        formData.importance[domain] = impInput ? parseInt(impInput.value) : null;
+        formData.consistency[domain] = conInput ? parseInt(conInput.value) : null;
     });
 
     return formData;
@@ -411,8 +420,8 @@ function showResults(formType, formData) {
  * @param {Object} formData - VLQ-1 form data
  */
 function generateVLQ1Visualizations(formData) {
-    // Get domain labels
-    const domains = Object.keys(formData.importance);
+    // Use predefined domain order for charts
+    const domains = VLQ1_DOMAINS;
     const labels = domains.map(domain => {
         return domain.charAt(0).toUpperCase() + domain.slice(1);
     });
@@ -606,7 +615,7 @@ function generateVLQ1Summary(formData) {
     const container = document.getElementById('summary-container');
     if (!container) return;
 
-    const domains = Object.keys(formData.importance);
+    const domains = VLQ1_DOMAINS;
     const highImportance = [];
     const highConsistency = [];
     const largeGaps = [];

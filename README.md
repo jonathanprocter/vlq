@@ -17,9 +17,9 @@ This project provides a simple web interface for completing the VLQ‑1 and VLQ�
 5. Use the buttons under the results to save, print or email the outcome.
 
 ## Interpreting the Results
-- Higher *Importance* ratings show how strongly you value a domain.
-- *Consistency* ratings indicate how well your current actions match those values.
-- Large differences between importance and consistency may point to areas for change.
+- **Importance** – how much a life area truly matters to you.
+- **Consistency** – how closely your day‑to‑day behaviour reflects that importance.
+- A large gap between the two highlights places where you may wish to focus effort.
 - VLQ‑2 adds extra aspects such as possibility and overall importance, giving a broader picture of your values and priorities.
 
 PDF versions of the questionnaires are available as `VLQ-1.pdf` and `VLQ-2.pdf` for reference.

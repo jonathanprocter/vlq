@@ -277,21 +277,25 @@
          </tbody>
        </table>
        
-       <div class="form-actions">
-         <button type="submit" class="button">Submit</button>
-         <button type="reset" class="button button-secondary">Reset</button>
-       </div>
-     </form>
-   </section>
+      <div class="form-actions">
+        <button type="submit" class="button">Submit</button>
+        <button type="reset" class="button button-secondary">Reset</button>
+      </div>
+      <p class="disclaimer">This questionnaire is intended for self-reflection only and is not a diagnostic tool.</p>
+    </form>
+  </section>
    
    <!-- Fix 6: Add VLQ-2 section with form (simplified version) -->
    <section id="vlq2-section" class="form-section" style="display: none;">
      <h2>VLQ-2: Comprehensive Assessment</h2>
-     <p>Please evaluate each life domain across six different aspects.</p>
+     <div class="instructions">
+       <p>The goal of VLQ-2 is to examine several aspects of your values in each life domain.</p>
+       <p>Use the sliders below (1–10) to rate the <em>possibility</em> of living according to your values and the <em>importance</em> of each area. There are no right or wrong answers – please respond honestly.</p>
+     </div>
      
      <form id="vlq2-form">
        <div class="domain-section">
-         <h3>Family</h3>
+         <h3 title="Relationships with family members beyond parenting or marriage">Family</h3>
          <div class="aspect-ratings">
            <div class="aspect-rating">
              <label for="family_possibility">Possibility</label>
@@ -318,7 +322,7 @@
        </div>
        
        <div class="domain-section">
-         <h3>Marriage/Couples</h3>
+         <h3 title="Committed or intimate partner relationships">Marriage/Couples</h3>
          <div class="aspect-ratings">
            <div class="aspect-rating">
              <label for="marriage_possibility">Possibility</label>
@@ -375,12 +379,13 @@
          </div>
        </div>
        
-       <div class="form-actions">
-         <button type="submit" class="button">Submit</button>
-         <button type="reset" class="button button-secondary">Reset</button>
-       </div>
-     </form>
-   </section>
+      <div class="form-actions">
+        <button type="submit" class="button">Submit</button>
+        <button type="reset" class="button button-secondary">Reset</button>
+      </div>
+      <p class="disclaimer">This questionnaire is intended for self-reflection only and is not a diagnostic tool.</p>
+    </form>
+  </section>
    
    <!-- Fix 7: Add results section -->
    <section id="results-section" class="results-section" style="display: none;">
@@ -393,12 +398,14 @@
          <canvas id="bar-chart"></canvas>
        </div>
      </div>
-     <div class="export-options">
-       <button class="button" id="save-results">Save Results</button>
-       <button class="button" id="print-results">Print Results</button>
-       <button class="button" id="email-results">Email Results</button>
-     </div>
-   </section>
+    <div class="export-options">
+      <button class="button" id="save-results">Save Results</button>
+      <button class="button" id="print-results">Print Results</button>
+      <button class="button" id="email-results">Email Results</button>
+    </div>
+    <div id="summary" class="summary"></div>
+    <p id="narrative" class="narrative"></p>
+  </section>
   </main>
   <footer>
    <p>

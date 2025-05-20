@@ -181,11 +181,14 @@ function validateVLQ1Form() {
     if (!form) return false;
 
     // Check if all required fields are filled
-    const requiredRadios = form.querySelectorAll('input[type="radio"]:required');
+    // Instead of only selecting radios marked as required, which
+    // can miss the user's actual selection, gather all radios and
+    // validate each group by name.
+    const allRadios = form.querySelectorAll('input[type="radio"]');
     const radioGroups = {};
 
     // Group radios by name
-    requiredRadios.forEach(radio => {
+    allRadios.forEach(radio => {
         if (!radioGroups[radio.name]) {
             radioGroups[radio.name] = [];
         }
@@ -400,6 +403,13 @@ function showResults(formType, formData) {
     } else if (formType === 'vlq2') {
         generateVLQ2Visualizations(formData);
     }
+
+    // Update narrative summary combining both questionnaires
+    const narrativeText = generateCombinedNarrative();
+    const narrativeEl = document.getElementById('narrative');
+    if (narrativeEl) {
+        narrativeEl.textContent = narrativeText;
+    }
 }
 
 /**
@@ -592,4 +602,56 @@ function generateVLQ2Visualizations(formData) {
             }
         }
     });
+}
+
+/**
+ * Generate a combined narrative summary for VLQ-1 and VLQ-2
+ * @returns {string} Narrative text
+ */
+function generateCombinedNarrative() {
+    const vlq1 = loadFormData('vlq1');
+    const vlq2 = loadFormData('vlq2');
+
+    let parts = [];
+
+    if (vlq1) {
+        const highImportance = [];
+        const highConsistency = [];
+        const largeGaps = [];
+
+        Object.keys(vlq1.importance).forEach(domain => {
+            const imp = vlq1.importance[domain];
+            const con = vlq1.consistency[domain];
+            const cap = domain.charAt(0).toUpperCase() + domain.slice(1);
+            if (imp >= 8) highImportance.push(cap);
+            if (con >= 8) highConsistency.push(cap);
+            if (imp - con >= 3) largeGaps.push(cap);
+        });
+
+        let text = '';
+        if (highImportance.length > 0) {
+            text += `Your most valued areas are ${highImportance.join(', ')}.`;
+        }
+        if (highConsistency.length > 0) {
+            text += ` You show high consistency in ${highConsistency.join(', ')}.`;
+        }
+        if (largeGaps.length > 0) {
+            text += ` Consider focusing on ${largeGaps.join(', ')} to better align actions with values.`;
+        }
+        parts.push(text);
+    }
+
+    if (vlq2) {
+        const topFive = vlq2.priorities.five.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ');
+        const topThree = vlq2.priorities.three.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ');
+
+        let text = `VLQ-2 shows interest in working on ${topFive}. Your top three priorities are ${topThree}.`;
+        parts.push(text);
+    }
+
+    if (parts.length === 0) {
+        return '';
+    }
+
+    return parts.join(' ');
 }

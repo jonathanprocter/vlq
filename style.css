@@ -413,6 +413,13 @@ textarea {
     justify-content: center;
 }
 
+/* Narrative paragraph */
+.narrative {
+    margin-top: var(--spacing-md);
+    font-style: italic;
+    text-align: center;
+}
+
 /* Results Section */
 .results-section {
     margin-top: var(--spacing-xl);

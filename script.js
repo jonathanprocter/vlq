@@ -181,11 +181,14 @@ function validateVLQ1Form() {
     if (!form) return false;
 
     // Check if all required fields are filled
-    const requiredRadios = form.querySelectorAll('input[type="radio"]:required');
+    // Instead of only selecting radios marked as required, which
+    // can miss the user's actual selection, gather all radios and
+    // validate each group by name.
+    const allRadios = form.querySelectorAll('input[type="radio"]');
     const radioGroups = {};
 
     // Group radios by name
-    requiredRadios.forEach(radio => {
+    allRadios.forEach(radio => {
         if (!radioGroups[radio.name]) {
             radioGroups[radio.name] = [];
         }
@@ -394,11 +397,25 @@ function showResults(formType, formData) {
         behavior: 'smooth'
     });
 
+
     // Generate visualizations based on form type
     if (formType === 'vlq1') {
         generateVLQ1Visualizations(formData);
     } else if (formType === 'vlq2') {
         generateVLQ2Visualizations(formData);
+    }
+
+    // Show combined narrative if both VLQ-1 and VLQ-2 data exist
+    const narrativeEl = document.getElementById('narrative');
+    if (narrativeEl) {
+        const vlq1Data = formType === 'vlq1' ? formData : loadFormData('vlq1');
+        const vlq2Data = formType === 'vlq2' ? formData : loadFormData('vlq2');
+
+        if (vlq1Data && vlq2Data) {
+            narrativeEl.textContent = generateCombinedNarrative(vlq1Data, vlq2Data);
+        } else {
+            narrativeEl.textContent = '';
+        }
     }
 }
 
@@ -592,4 +609,29 @@ function generateVLQ2Visualizations(formData) {
             }
         }
     });
+}
+
+/**
+ * Generate a short narrative summarizing both VLQ-1 and VLQ-2 results
+ * @param {Object} vlq1Data - Processed VLQ-1 data
+ * @param {Object} vlq2Data - Processed VLQ-2 data
+ * @returns {string} Narrative text
+ */
+function generateCombinedNarrative(vlq1Data, vlq2Data) {
+    const domains1 = Object.keys(vlq1Data.importance);
+    const avgImportance = domains1.reduce((sum, d) => sum + vlq1Data.importance[d], 0) / domains1.length;
+    const avgConsistency = domains1.reduce((sum, d) => sum + vlq1Data.consistency[d], 0) / domains1.length;
+
+    const domains2 = Object.keys(vlq2Data.domains);
+    const avgOverall = domains2.reduce((sum, d) => sum + (vlq2Data.domains[d].overall_importance || 0), 0) / domains2.length;
+
+    const gap = avgImportance - avgConsistency;
+    let narrative = `Your average importance rating in VLQ-1 is ${avgImportance.toFixed(1)} while your consistency is ${avgConsistency.toFixed(1)}.`;
+    narrative += ` In VLQ-2, your overall importance averages ${avgOverall.toFixed(1)}.`;
+    if (gap > 1) {
+        narrative += ' This suggests there may be a gap between what you value and how consistently you act on those values.';
+    } else {
+        narrative += ' This suggests you are largely living in line with what you find important.';
+    }
+    return narrative;
 }

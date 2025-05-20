@@ -17,6 +17,9 @@ const VLQ1_DOMAINS = [
     'selfcare'
 ];
 
+// Keep track of which questionnaire was last completed
+let lastFormType = null;
+
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize navigation
@@ -167,7 +170,7 @@ function initExportButtons() {
     const saveResultsButton = document.getElementById('save-results');
     if (saveResultsButton) {
         saveResultsButton.addEventListener('click', function() {
-            alert('Results saved successfully!');
+            saveResultsToFile();
         });
     }
     
@@ -184,6 +187,25 @@ function initExportButtons() {
             alert('Email feature coming soon!');
         });
     }
+}
+
+/**
+ * Create a downloadable JSON file containing the saved results
+ */
+function saveResultsToFile() {
+    const vlq1 = loadFormData('vlq1');
+    const vlq2 = loadFormData('vlq2');
+
+    const data = { vlq1, vlq2 };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'vlq-results.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 /**
@@ -406,12 +428,28 @@ function showResults(formType, formData) {
         behavior: 'smooth'
     });
 
+    // Track last completed questionnaire
+    lastFormType = formType;
+
+    // Clear previous summary
+    const summaryContainer = document.getElementById('summary-container');
+    if (summaryContainer) summaryContainer.innerHTML = '';
+
     // Generate visualizations based on form type
     if (formType === 'vlq1') {
         generateVLQ1Visualizations(formData);
         generateVLQ1Summary(formData);
     } else if (formType === 'vlq2') {
         generateVLQ2Visualizations(formData);
+
+        // If VLQ-1 data exists, show it alongside VLQ-2 insights
+        const vlq1Data = loadFormData('vlq1');
+        if (vlq1Data) {
+            generateVLQ1Summary(vlq1Data);
+            generateVLQ2Summary(formData, true);
+        } else {
+            generateVLQ2Summary(formData);
+        }
     }
 }
 
@@ -611,7 +649,7 @@ function generateVLQ2Visualizations(formData) {
  * Generate narrative summary for VLQ-1 results and display it
  * @param {Object} formData - VLQ-1 form data
  */
-function generateVLQ1Summary(formData) {
+function generateVLQ1Summary(formData, append = false) {
     const container = document.getElementById('summary-container');
     if (!container) return;
 
@@ -661,7 +699,40 @@ function generateVLQ1Summary(formData) {
     }
     html += '<li>Who or what could support you moving forward?</li></ol>';
 
-    container.innerHTML = html;
+    if (append) {
+        container.innerHTML += html;
+    } else {
+        container.innerHTML = html;
+    }
+}
+
+/**
+ * Generate narrative summary for VLQ-2 results
+ * @param {Object} formData - VLQ-2 form data
+ * @param {boolean} append - Whether to append to existing summary
+ */
+function generateVLQ2Summary(formData, append = false) {
+    const container = document.getElementById('summary-container');
+    if (!container) return;
+
+    const priorityFive = formData.priorities.five.map(capitalize);
+    const priorityThree = formData.priorities.three.map(capitalize);
+
+    let html = '<h3>VLQ-2 Insights</h3>';
+    if (priorityFive.length) {
+        html += `<p><strong>Top 5 areas to work on:</strong> ${priorityFive.join(', ')}.</p>`;
+    }
+    if (priorityThree.length) {
+        html += `<p><strong>Priority focus areas:</strong> ${priorityThree.join(', ')}.</p>`;
+    }
+
+    html += '<p>Consider how these choices relate to the gaps identified above and plan small, achievable steps to move forward.</p>';
+
+    if (append) {
+        container.innerHTML += html;
+    } else {
+        container.innerHTML = html;
+    }
 }
 
 function capitalize(str) {

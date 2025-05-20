@@ -1,68 +1,418 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valued Living Questionnaire</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <header>
-        <h1>Valued Living Questionnaire</h1>
-        <p class="subtitle">A reflective journey into your values</p>
-    </header>
-    <div id="progressContainer"><div id="progressBar"></div></div>
-    <main id="app">
-        <!-- Section: Introduction -->
-        <section id="intro" class="active">
-            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1350&q=80" alt="Zen nature" class="hero">
-            <p>Welcome to a mindful exploration of your values. Take a deep breath, relax, and move at your own pace.</p>
-            <button id="startBtn">Begin</button>
-        </section>
-
-        <!-- Section: VLQ-1 -->
-        <section id="vlq1" class="hidden">
-            <h2>VLQ-1: Importance & Consistency</h2>
-            <form id="vlq1Form"></form>
-            <button id="vlq1Next">Continue</button>
-        </section>
-
-        <!-- Section: VLQ-2 -->
-        <section id="vlq2" class="hidden">
-            <h2>VLQ-2: Values in Depth</h2>
-            <form id="vlq2Form"></form>
-            <button id="vlq2Prev">Back</button>
-            <button id="vlq2Next">See Results</button>
-        </section>
-
-        <!-- Section: Results -->
-        <section id="results" class="hidden">
-            <h2>Your Values Insights</h2>
-            <canvas id="radarChart"></canvas>
-            <canvas id="barChart"></canvas>
-            <canvas id="heatMap"></canvas>
-            <div id="narrative"></div>
-            <button id="journalBtn">Go to Values Journal</button>
-        </section>
-
-        <!-- Section: Journal -->
-        <section id="journal" class="hidden">
-            <h2>Values Journal</h2>
-            <textarea id="journalEntry" placeholder="Reflect on your values..."></textarea>
-            <button id="saveJournal">Save Entry</button>
-            <ul id="journalList"></ul>
-        </section>
-    </main>
-
-    <footer>
-        <button id="save">Save</button>
-        <button id="print">Print</button>
-        <button id="email">Email</button>
-    </footer>
-
-    <script src="script.js"></script>
-</body>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Valued Living Questionnaires
+  </title>
+  <!-- Fix 1: Use local CSS instead of potentially inaccessible URL -->
+  <link href="style.css" rel="stylesheet"/>
+  <!-- Fix 2: Add chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta content="Valued Living Questionnaires (VLQ-1 and VLQ-2) for assessing personal values and consistency across life domains" name="description"/>
+ </head>
+ <body>
+  <header>
+   <h1>
+    Valued Living Questionnaires
+   </h1>
+   <p class="subtitle">
+    Explore and assess your personal values across different life domains
+   </p>
+  </header>
+  <main>
+   <section class="intro">
+    <h2>
+     About the Valued Living Questionnaires
+    </h2>
+    <p>
+     The Valued Living Questionnaires (VLQ) are psychological assessment tools designed to help individuals explore and evaluate their personal values across different life domains. These questionnaires help you identify what is most important to you and assess how consistently you are living in accordance with your values.
+    </p>
+    <div class="questionnaire-options">
+     <div class="questionnaire-card">
+      <h3>
+       VLQ-1: Basic Assessment
+      </h3>
+      <p>
+       This questionnaire focuses on rating the importance of 10 life domains and how consistently your actions align with these values.
+      </p>
+      <ul>
+       <li>
+        Rate the importance of each life domain
+       </li>
+       <li>
+        Assess consistency of your actions with your values
+       </li>
+       <li>
+        Visualize the relationship between importance and consistency
+       </li>
+      </ul>
+      <!-- Fix 3: Start questionnaire directly in this page instead of missing file -->
+      <a class="button" href="#vlq1-section" id="start-vlq1">
+       Start VLQ-1
+      </a>
+     </div>
+     <div class="questionnaire-card">
+      <h3>
+       VLQ-2: Comprehensive Assessment
+      </h3>
+      <p>
+       This expanded questionnaire evaluates 12 life domains across six different aspects, providing a more detailed assessment of your valued living.
+      </p>
+      <ul>
+       <li>
+        Evaluate possibility, importance, action, satisfaction, and concern
+       </li>
+       <li>
+        Prioritize areas for personal growth
+       </li>
+       <li>
+        Visualize complex relationships between different aspects
+       </li>
+      </ul>
+      <!-- Fix 4: Start questionnaire directly in this page instead of missing file -->
+      <a class="button" href="#vlq2-section" id="start-vlq2">
+       Start VLQ-2
+      </a>
+     </div>
+    </div>
+   </section>
+   <section class="features">
+    <h2>
+     Features
+    </h2>
+    <div class="feature-grid">
+     <div class="feature">
+      <h3>
+       Interactive Forms
+      </h3>
+      <p>
+       Easy-to-use questionnaires with real-time validation
+      </p>
+     </div>
+     <div class="feature">
+      <h3>
+       Data Visualization
+      </h3>
+      <p>
+       View your results through radar charts, bar graphs, and heat maps
+      </p>
+     </div>
+     <div class="feature">
+      <h3>
+       Export Options
+      </h3>
+      <p>
+       Save, print, or email your results for future reference
+      </p>
+     </div>
+     <div class="feature">
+      <h3>
+       Responsive Design
+      </h3>
+      <p>
+       Access the questionnaires on any device
+      </p>
+     </div>
+    </div>
+   </section>
+   
+   <!-- Fix 5: Add VLQ-1 section with form -->
+   <section id="vlq1-section" class="form-section" style="display: none;">
+     <h2>VLQ-1: Basic Assessment</h2>
+     <p>Please rate the importance of each life domain and how consistently your actions align with these values.</p>
+     
+     <form id="vlq1-form">
+       <table class="rating-table">
+         <thead>
+           <tr>
+             <th>Life Domain</th>
+             <th colspan="10">Importance (1-10)</th>
+           </tr>
+         </thead>
+         <tbody>
+           <tr>
+             <td>Family (other than marriage or parenting)</td>
+             <td><input type="radio" name="importance_family" value="1" required><label>1</label></td>
+             <td><input type="radio" name="importance_family" value="2"><label>2</label></td>
+             <td><input type="radio" name="importance_family" value="3"><label>3</label></td>
+             <td><input type="radio" name="importance_family" value="4"><label>4</label></td>
+             <td><input type="radio" name="importance_family" value="5"><label>5</label></td>
+             <td><input type="radio" name="importance_family" value="6"><label>6</label></td>
+             <td><input type="radio" name="importance_family" value="7"><label>7</label></td>
+             <td><input type="radio" name="importance_family" value="8"><label>8</label></td>
+             <td><input type="radio" name="importance_family" value="9"><label>9</label></td>
+             <td><input type="radio" name="importance_family" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Marriage/Couples/Intimate relationships</td>
+             <td><input type="radio" name="importance_marriage" value="1" required><label>1</label></td>
+             <td><input type="radio" name="importance_marriage" value="2"><label>2</label></td>
+             <td><input type="radio" name="importance_marriage" value="3"><label>3</label></td>
+             <td><input type="radio" name="importance_marriage" value="4"><label>4</label></td>
+             <td><input type="radio" name="importance_marriage" value="5"><label>5</label></td>
+             <td><input type="radio" name="importance_marriage" value="6"><label>6</label></td>
+             <td><input type="radio" name="importance_marriage" value="7"><label>7</label></td>
+             <td><input type="radio" name="importance_marriage" value="8"><label>8</label></td>
+             <td><input type="radio" name="importance_marriage" value="9"><label>9</label></td>
+             <td><input type="radio" name="importance_marriage" value="10"><label>10</label></td>
+           </tr>
+           <!-- Additional rows follow the same pattern -->
+           <tr>
+             <td>Parenting</td>
+             <td><input type="radio" name="importance_parenting" value="1" required><label>1</label></td>
+             <td><input type="radio" name="importance_parenting" value="2"><label>2</label></td>
+             <td><input type="radio" name="importance_parenting" value="3"><label>3</label></td>
+             <td><input type="radio" name="importance_parenting" value="4"><label>4</label></td>
+             <td><input type="radio" name="importance_parenting" value="5"><label>5</label></td>
+             <td><input type="radio" name="importance_parenting" value="6"><label>6</label></td>
+             <td><input type="radio" name="importance_parenting" value="7"><label>7</label></td>
+             <td><input type="radio" name="importance_parenting" value="8"><label>8</label></td>
+             <td><input type="radio" name="importance_parenting" value="9"><label>9</label></td>
+             <td><input type="radio" name="importance_parenting" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Friends/Social Life</td>
+             <td><input type="radio" name="importance_friends" value="1" required><label>1</label></td>
+             <td><input type="radio" name="importance_friends" value="2"><label>2</label></td>
+             <td><input type="radio" name="importance_friends" value="3"><label>3</label></td>
+             <td><input type="radio" name="importance_friends" value="4"><label>4</label></td>
+             <td><input type="radio" name="importance_friends" value="5"><label>5</label></td>
+             <td><input type="radio" name="importance_friends" value="6"><label>6</label></td>
+             <td><input type="radio" name="importance_friends" value="7"><label>7</label></td>
+             <td><input type="radio" name="importance_friends" value="8"><label>8</label></td>
+             <td><input type="radio" name="importance_friends" value="9"><label>9</label></td>
+             <td><input type="radio" name="importance_friends" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Work</td>
+             <td><input type="radio" name="importance_work" value="1" required><label>1</label></td>
+             <td><input type="radio" name="importance_work" value="2"><label>2</label></td>
+             <td><input type="radio" name="importance_work" value="3"><label>3</label></td>
+             <td><input type="radio" name="importance_work" value="4"><label>4</label></td>
+             <td><input type="radio" name="importance_work" value="5"><label>5</label></td>
+             <td><input type="radio" name="importance_work" value="6"><label>6</label></td>
+             <td><input type="radio" name="importance_work" value="7"><label>7</label></td>
+             <td><input type="radio" name="importance_work" value="8"><label>8</label></td>
+             <td><input type="radio" name="importance_work" value="9"><label>9</label></td>
+             <td><input type="radio" name="importance_work" value="10"><label>10</label></td>
+           </tr>
+         </tbody>
+       </table>
+       
+       <table class="rating-table">
+         <thead>
+           <tr>
+             <th>Life Domain</th>
+             <th colspan="10">Consistency (1-10)</th>
+           </tr>
+         </thead>
+         <tbody>
+           <tr>
+             <td>Family (other than marriage or parenting)</td>
+             <td><input type="radio" name="consistency_family" value="1" required><label>1</label></td>
+             <td><input type="radio" name="consistency_family" value="2"><label>2</label></td>
+             <td><input type="radio" name="consistency_family" value="3"><label>3</label></td>
+             <td><input type="radio" name="consistency_family" value="4"><label>4</label></td>
+             <td><input type="radio" name="consistency_family" value="5"><label>5</label></td>
+             <td><input type="radio" name="consistency_family" value="6"><label>6</label></td>
+             <td><input type="radio" name="consistency_family" value="7"><label>7</label></td>
+             <td><input type="radio" name="consistency_family" value="8"><label>8</label></td>
+             <td><input type="radio" name="consistency_family" value="9"><label>9</label></td>
+             <td><input type="radio" name="consistency_family" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Marriage/Couples/Intimate relationships</td>
+             <td><input type="radio" name="consistency_marriage" value="1" required><label>1</label></td>
+             <td><input type="radio" name="consistency_marriage" value="2"><label>2</label></td>
+             <td><input type="radio" name="consistency_marriage" value="3"><label>3</label></td>
+             <td><input type="radio" name="consistency_marriage" value="4"><label>4</label></td>
+             <td><input type="radio" name="consistency_marriage" value="5"><label>5</label></td>
+             <td><input type="radio" name="consistency_marriage" value="6"><label>6</label></td>
+             <td><input type="radio" name="consistency_marriage" value="7"><label>7</label></td>
+             <td><input type="radio" name="consistency_marriage" value="8"><label>8</label></td>
+             <td><input type="radio" name="consistency_marriage" value="9"><label>9</label></td>
+             <td><input type="radio" name="consistency_marriage" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Parenting</td>
+             <td><input type="radio" name="consistency_parenting" value="1" required><label>1</label></td>
+             <td><input type="radio" name="consistency_parenting" value="2"><label>2</label></td>
+             <td><input type="radio" name="consistency_parenting" value="3"><label>3</label></td>
+             <td><input type="radio" name="consistency_parenting" value="4"><label>4</label></td>
+             <td><input type="radio" name="consistency_parenting" value="5"><label>5</label></td>
+             <td><input type="radio" name="consistency_parenting" value="6"><label>6</label></td>
+             <td><input type="radio" name="consistency_parenting" value="7"><label>7</label></td>
+             <td><input type="radio" name="consistency_parenting" value="8"><label>8</label></td>
+             <td><input type="radio" name="consistency_parenting" value="9"><label>9</label></td>
+             <td><input type="radio" name="consistency_parenting" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Friends/Social Life</td>
+             <td><input type="radio" name="consistency_friends" value="1" required><label>1</label></td>
+             <td><input type="radio" name="consistency_friends" value="2"><label>2</label></td>
+             <td><input type="radio" name="consistency_friends" value="3"><label>3</label></td>
+             <td><input type="radio" name="consistency_friends" value="4"><label>4</label></td>
+             <td><input type="radio" name="consistency_friends" value="5"><label>5</label></td>
+             <td><input type="radio" name="consistency_friends" value="6"><label>6</label></td>
+             <td><input type="radio" name="consistency_friends" value="7"><label>7</label></td>
+             <td><input type="radio" name="consistency_friends" value="8"><label>8</label></td>
+             <td><input type="radio" name="consistency_friends" value="9"><label>9</label></td>
+             <td><input type="radio" name="consistency_friends" value="10"><label>10</label></td>
+           </tr>
+           <tr>
+             <td>Work</td>
+             <td><input type="radio" name="consistency_work" value="1" required><label>1</label></td>
+             <td><input type="radio" name="consistency_work" value="2"><label>2</label></td>
+             <td><input type="radio" name="consistency_work" value="3"><label>3</label></td>
+             <td><input type="radio" name="consistency_work" value="4"><label>4</label></td>
+             <td><input type="radio" name="consistency_work" value="5"><label>5</label></td>
+             <td><input type="radio" name="consistency_work" value="6"><label>6</label></td>
+             <td><input type="radio" name="consistency_work" value="7"><label>7</label></td>
+             <td><input type="radio" name="consistency_work" value="8"><label>8</label></td>
+             <td><input type="radio" name="consistency_work" value="9"><label>9</label></td>
+             <td><input type="radio" name="consistency_work" value="10"><label>10</label></td>
+           </tr>
+         </tbody>
+       </table>
+       
+       <div class="form-actions">
+         <button type="submit" class="button">Submit</button>
+         <button type="reset" class="button button-secondary">Reset</button>
+       </div>
+     </form>
+   </section>
+   
+   <!-- Fix 6: Add VLQ-2 section with form (simplified version) -->
+   <section id="vlq2-section" class="form-section" style="display: none;">
+     <h2>VLQ-2: Comprehensive Assessment</h2>
+     <p>Please evaluate each life domain across six different aspects.</p>
+     
+     <form id="vlq2-form">
+       <div class="domain-section">
+         <h3>Family</h3>
+         <div class="aspect-ratings">
+           <div class="aspect-rating">
+             <label for="family_possibility">Possibility</label>
+             <div class="rating-scale">
+               <input type="range" id="family_possibility" name="family_possibility" min="1" max="10" value="5">
+               <span class="value-display">5</span>
+             </div>
+           </div>
+           <div class="aspect-rating">
+             <label for="family_current_importance">Current Importance</label>
+             <div class="rating-scale">
+               <input type="range" id="family_current_importance" name="family_current_importance" min="1" max="10" value="5">
+               <span class="value-display">5</span>
+             </div>
+           </div>
+           <div class="aspect-rating">
+             <label for="family_overall_importance">Overall Importance</label>
+             <div class="rating-scale">
+               <input type="range" id="family_overall_importance" name="family_overall_importance" min="1" max="10" value="5">
+               <span class="value-display">5</span>
+             </div>
+           </div>
+         </div>
+       </div>
+       
+       <div class="domain-section">
+         <h3>Marriage/Couples</h3>
+         <div class="aspect-ratings">
+           <div class="aspect-rating">
+             <label for="marriage_possibility">Possibility</label>
+             <div class="rating-scale">
+               <input type="range" id="marriage_possibility" name="marriage_possibility" min="1" max="10" value="5">
+               <span class="value-display">5</span>
+             </div>
+           </div>
+           <div class="aspect-rating">
+             <label for="marriage_current_importance">Current Importance</label>
+             <div class="rating-scale">
+               <input type="range" id="marriage_current_importance" name="marriage_current_importance" min="1" max="10" value="5">
+               <span class="value-display">5</span>
+             </div>
+           </div>
+           <div class="aspect-rating">
+             <label for="marriage_overall_importance">Overall Importance</label>
+             <div class="rating-scale">
+               <input type="range" id="marriage_overall_importance" name="marriage_overall_importance" min="1" max="10" value="5">
+               <span class="value-display">5</span>
+             </div>
+           </div>
+         </div>
+       </div>
+       
+       <!-- Prioritization section -->
+       <div class="form-section">
+         <h3>Prioritization</h3>
+         <div class="priority-group">
+           <label>Select 5 areas you would like to work on:</label>
+           <div class="checkbox-group">
+             <label><input type="checkbox" name="priority_five" value="family">Family</label>
+             <label><input type="checkbox" name="priority_five" value="marriage">Marriage/Couples</label>
+             <label><input type="checkbox" name="priority_five" value="parenting">Parenting</label>
+             <label><input type="checkbox" name="priority_five" value="friends">Friends/Social</label>
+             <label><input type="checkbox" name="priority_five" value="work">Work</label>
+             <label><input type="checkbox" name="priority_five" value="education">Education</label>
+             <label><input type="checkbox" name="priority_five" value="recreation">Recreation</label>
+             <label><input type="checkbox" name="priority_five" value="spirituality">Spirituality</label>
+             <label><input type="checkbox" name="priority_five" value="community">Community</label>
+             <label><input type="checkbox" name="priority_five" value="selfcare">Physical Self-Care</label>
+           </div>
+         </div>
+         
+         <div class="priority-group">
+           <label>Select 3 areas you would like to prioritize:</label>
+           <div class="checkbox-group">
+             <label><input type="checkbox" name="priority_three" value="family">Family</label>
+             <label><input type="checkbox" name="priority_three" value="marriage">Marriage/Couples</label>
+             <label><input type="checkbox" name="priority_three" value="parenting">Parenting</label>
+             <label><input type="checkbox" name="priority_three" value="friends">Friends/Social</label>
+             <label><input type="checkbox" name="priority_three" value="work">Work</label>
+           </div>
+         </div>
+       </div>
+       
+       <div class="form-actions">
+         <button type="submit" class="button">Submit</button>
+         <button type="reset" class="button button-secondary">Reset</button>
+       </div>
+     </form>
+   </section>
+   
+   <!-- Fix 7: Add results section -->
+   <section id="results-section" class="results-section" style="display: none;">
+     <h2>Your Results</h2>
+     <div class="visualization-container">
+       <div class="chart-container">
+         <canvas id="radar-chart"></canvas>
+       </div>
+       <div class="chart-container">
+         <canvas id="bar-chart"></canvas>
+       </div>
+     </div>
+     <div class="export-options">
+       <button class="button" id="save-results">Save Results</button>
+       <button class="button" id="print-results">Print Results</button>
+       <button class="button" id="email-results">Email Results</button>
+     </div>
+   </section>
+  </main>
+  <footer>
+   <p>
+    &copy; 2025 Valued Living Questionnaires |
+    <a href="#about">
+     About
+    </a>
+    |
+    <a href="#privacy">
+     Privacy Policy
+    </a>
+   </p>
+  </footer>
+  <!-- Fix 8: Correct script path -->
+  <script src="script.js"></script>
+ </body>
 </html>
-

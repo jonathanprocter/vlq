@@ -305,7 +305,16 @@ function processVLQ2FormData() {
     if (!form) return {};
 
     const domains = [
-        'family', 'marriage'
+        'family',
+        'marriage',
+        'parenting',
+        'friends',
+        'work',
+        'education',
+        'recreation',
+        'spirituality',
+        'community',
+        'selfcare'
     ];
 
     const aspects = [

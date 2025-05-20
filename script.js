@@ -400,6 +400,7 @@ function showResults(formType, formData) {
     // Generate visualizations based on form type
     if (formType === 'vlq1') {
         generateVLQ1Visualizations(formData);
+        generateVLQ1Summary(formData);
     } else if (formType === 'vlq2') {
         generateVLQ2Visualizations(formData);
     }
@@ -595,4 +596,65 @@ function generateVLQ2Visualizations(formData) {
             }
         }
     });
+}
+
+/**
+ * Generate narrative summary for VLQ-1 results and display it
+ * @param {Object} formData - VLQ-1 form data
+ */
+function generateVLQ1Summary(formData) {
+    const container = document.getElementById('summary-container');
+    if (!container) return;
+
+    const domains = Object.keys(formData.importance);
+    const highImportance = [];
+    const highConsistency = [];
+    const largeGaps = [];
+
+    domains.forEach(domain => {
+        const imp = formData.importance[domain] || 0;
+        const con = formData.consistency[domain] || 0;
+        const gap = imp - con;
+
+        if (imp >= 8) highImportance.push(domain);
+        if (con >= 8) highConsistency.push(domain);
+        if (gap >= 3) {
+            largeGaps.push({ domain, gap });
+        }
+    });
+
+    let html = '<h3>Summary</h3>';
+
+    if (highImportance.length) {
+        html += `<p><strong>Highly valued areas:</strong> ${highImportance.map(capitalize).join(', ')}.</p>`;
+    }
+
+    if (highConsistency.length) {
+        html += `<p><strong>Areas where actions match your values:</strong> ${highConsistency.map(capitalize).join(', ')}.</p>`;
+    }
+
+    if (largeGaps.length) {
+        html += '<p><strong>Domains with notable value-action gaps:</strong></p><ul>';
+        largeGaps.forEach(item => {
+            html += `<li>${capitalize(item.domain)} (gap of ${item.gap}). Consider small steps to align actions with this value.</li>`;
+        });
+        html += '</ul>';
+    } else {
+        html += '<p>Your actions appear largely consistent with your values.</p>';
+    }
+
+    html += '<h4>Reflection Questions</h4><ol>';
+    html += '<li>What stands out most from these results?</li>';
+    if (largeGaps.length) {
+        html += '<li>Which gap feels most important to address first?</li>';
+    } else {
+        html += '<li>How might you continue honoring these valued areas?</li>';
+    }
+    html += '<li>Who or what could support you moving forward?</li></ol>';
+
+    container.innerHTML = html;
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }

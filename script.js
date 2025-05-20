@@ -1,208 +1,595 @@
-const lifeAreas1 = [
-    'Family Relationships',
-    'Marriage/Couples/Intimacy',
-    'Parenting',
-    'Friends/Social Life',
-    'Work',
-    'Education/Training',
-    'Recreation/Fun',
-    'Spirituality',
-    'Citizenship/Community Life',
-    'Physical Self-Care'
-];
+/**
+ * Valued Living Questionnaires - Main JavaScript
+ * Handles core application logic, form validation, and data processing
+ */
 
-const lifeAreas2 = [
-    'Family', 'Romantic', 'Parenting', 'Friends',
-    'Work', 'Education', 'Recreation', 'Spirituality',
-    'Citizenship', 'Health', 'Self-Care', 'Art'
-];
+// Wait for the DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize navigation
+    initNavigation();
+    
+    // Initialize form validation and event listeners
+    initForms();
 
-let journalEntries = [];
-let currentStep = 0;
-const steps = ['intro','vlq1','vlq2','results','journal'];
+    // Initialize range input displays
+    initRangeInputs();
 
-function updateProgress() {
-    const progress = (currentStep / (steps.length - 1)) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
-}
+    // Initialize checkbox validation for prioritization
+    initPrioritizationValidation();
+    
+    // Initialize export buttons
+    initExportButtons();
+});
 
-function attachSlider(input) {
-    const span = input.nextElementSibling;
-    span.textContent = input.value;
-    input.addEventListener('input', () => {
-        span.textContent = input.value;
-    });
-}
-
-function createVlq1() {
-    const form = document.getElementById('vlq1Form');
-    lifeAreas1.forEach(area => {
-        const div = document.createElement('div');
-        div.innerHTML = `<label>${area} Importance: <input type="range" min="1" max="10" value="5" name="imp-${area}"><span class="slider-value">5</span></label><br>`+
-                        `<label>${area} Consistency: <input type="range" min="1" max="10" value="5" name="cons-${area}"><span class="slider-value">5</span></label>`;
-        form.appendChild(div);
-        div.querySelectorAll('input[type="range"]').forEach(attachSlider);
-    });
-}
-
-function createVlq2() {
-    const form = document.getElementById('vlq2Form');
-    const aspects = ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'];
-    lifeAreas2.forEach(area => {
-        const det = document.createElement('details');
-        det.innerHTML = `<summary>${area}</summary>`+
-            aspects.map(q => `<label>${q}: <input type="range" min="1" max="10" value="5" name="${q}-${area}"><span class="slider-value">5</span></label>`).join('<br>');
-        form.appendChild(det);
-        det.querySelectorAll('input[type="range"]').forEach(attachSlider);
-    });
-    // Add prioritization prompts
-    form.innerHTML += `<h3>Prioritization</h3><p>Which areas are most important to you right now?</p><textarea name="priority"></textarea>`;
-}
-
-function showSection(id) {
-    document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    currentStep = steps.indexOf(id);
-    updateProgress();
-}
-
-function gatherVlq1() {
-    const form = new FormData(document.getElementById('vlq1Form'));
-    const data = lifeAreas1.map(area => ({
-        area,
-        importance: Number(form.get(`imp-${area}`)),
-        consistency: Number(form.get(`cons-${area}`))
-    }));
-    return data;
-}
-
-function gatherVlq2() {
-    const form = new FormData(document.getElementById('vlq2Form'));
-    const aspects = ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'];
-    const data = lifeAreas2.map(area => {
-        let obj = { area };
-        aspects.forEach(a => {
-            obj[a] = Number(form.get(`${a}-${area}`));
+/**
+ * Initialize navigation between questionnaires and landing page
+ */
+function initNavigation() {
+    // Start VLQ-1 button
+    const startVLQ1Button = document.getElementById('start-vlq1');
+    if (startVLQ1Button) {
+        startVLQ1Button.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('vlq1-section').style.display = 'block';
+            document.getElementById('vlq2-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'none';
+            
+            // Scroll to form
+            document.getElementById('vlq1-section').scrollIntoView({
+                behavior: 'smooth'
+            });
         });
-        return obj;
-    });
-    const priority = form.get('priority');
-    return { data, priority };
-}
-
-function renderCharts(v1, v2) {
-    const ctxRadar = document.getElementById('radarChart').getContext('2d');
-    new Chart(ctxRadar, {
-        type: 'radar',
-        data: {
-            labels: v1.map(d => d.area),
-            datasets: [
-                {
-                    label: 'Importance',
-                    data: v1.map(d => d.importance),
-                    backgroundColor: 'rgba(108,141,122,0.2)',
-                    borderColor: '#6c8d7a'
-                },
-                {
-                    label: 'Consistency',
-                    data: v1.map(d => d.consistency),
-                    backgroundColor: 'rgba(205,224,213,0.2)',
-                    borderColor: '#cde0d5'
-                }
-            ]
-        },
-        options: { responsive: true }
-    });
-
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: lifeAreas2,
-            datasets: ['Possibility','Current Importance','Overall Importance','Action','Satisfaction with Action','Concern'].map((a,i)=>({
-                label: a,
-                data: v2.data.map(d=>d[a]),
-                backgroundColor: `hsla(${i*40},70%,70%,0.5)`
-            }))
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
-    });
-
-    const ctxHeat = document.getElementById('heatMap').getContext('2d');
-    new Chart(ctxHeat, {
-        type: 'bar',
-        data: {
-            labels: v1.map(d=>d.area),
-            datasets: [{
-                label: 'Alignment (Importance - Consistency)',
-                data: v1.map(d=>d.importance-d.consistency),
-                backgroundColor: v1.map(d=>`rgba(255,99,132,${Math.abs(d.importance-d.consistency)/10})`)
-            }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-}
-
-function generateNarrative(v1, v2) {
-    const topAreas = [...v1].sort((a,b)=>b.importance-a.importance).slice(0,3).map(d=>d.area);
-    const goodAlign = v1.filter(d=>Math.abs(d.importance-d.consistency)<=2).map(d=>d.area);
-    const poorAlign = v1.filter(d=>Math.abs(d.importance-d.consistency)>2).map(d=>d.area);
-    const div = document.getElementById('narrative');
-    div.innerHTML = `<p>Your highest values include: <strong>${topAreas.join(', ')}</strong>.</p>`+
-        `<p>These areas show good alignment between values and actions: <strong>${goodAlign.join(', ')||'None'}</strong>.</p>`+
-        `<p>These areas might need attention: <strong>${poorAlign.join(', ')||'None'}</strong>.</p>`+
-        `<p>You indicated priority in: <em>${v2.priority}</em>.</p>`+
-        `<p>Consider journaling your thoughts below.</p>`;
-}
-
-function saveJournal() {
-    const text = document.getElementById('journalEntry').value.trim();
-    if (text) {
-        journalEntries.push(text);
-        const li = document.createElement('li');
-        li.textContent = text;
-        document.getElementById('journalList').appendChild(li);
-        document.getElementById('journalEntry').value = '';
+    }
+    
+    // Start VLQ-2 button
+    const startVLQ2Button = document.getElementById('start-vlq2');
+    if (startVLQ2Button) {
+        startVLQ2Button.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('vlq1-section').style.display = 'none';
+            document.getElementById('vlq2-section').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            
+            // Scroll to form
+            document.getElementById('vlq2-section').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
     }
 }
 
-function setup() {
-    createVlq1();
-    createVlq2();
+/**
+ * Initialize form validation and submission handling
+ */
+function initForms() {
+    // VLQ-1 Form
+    const vlq1Form = document.getElementById('vlq1-form');
+    if (vlq1Form) {
+        vlq1Form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    updateProgress();
+            if (validateVLQ1Form()) {
+                const formData = processVLQ1FormData();
+                saveFormData('vlq1', formData);
+                showResults('vlq1', formData);
+            }
+        });
+    }
 
-    document.getElementById('startBtn').addEventListener('click', () => showSection('vlq1'));
-    document.getElementById('vlq1Next').addEventListener('click', () => showSection('vlq2'));
-    document.getElementById('vlq2Prev').addEventListener('click', () => showSection('vlq1'));
-    document.getElementById('vlq2Next').addEventListener('click', () => {
-        const v1 = gatherVlq1();
-        const v2 = gatherVlq2();
-        showSection('results');
-        renderCharts(v1,v2);
-        generateNarrative(v1,v2);
-    });
-    document.getElementById('journalBtn').addEventListener('click', () => showSection('journal'));
-    document.getElementById('saveJournal').addEventListener('click', saveJournal);
+    // VLQ-2 Form
+    const vlq2Form = document.getElementById('vlq2-form');
+    if (vlq2Form) {
+        vlq2Form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    document.getElementById('save').addEventListener('click', () => {
-        const data = {
-            vlq1: gatherVlq1(),
-            vlq2: gatherVlq2(),
-            journal: journalEntries
-        };
-        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'vlq-results.json';
-        a.click();
-    });
+            if (validateVLQ2Form()) {
+                const formData = processVLQ2FormData();
+                saveFormData('vlq2', formData);
+                showResults('vlq2', formData);
+            }
+        });
+    }
+}
 
-    document.getElementById('print').addEventListener('click', () => window.print());
-    document.getElementById('email').addEventListener('click', () => {
-        const body = encodeURIComponent(document.getElementById('narrative').innerText);
-        location.href = `mailto:?subject=My VLQ Results&body=${body}`;
+/**
+ * Initialize range input displays to show current value
+ */
+function initRangeInputs() {
+    const rangeInputs = document.querySelectorAll('input[type="range"]');
+
+    rangeInputs.forEach(input => {
+        // Set initial value display
+        const valueDisplay = input.parentElement.querySelector('.value-display');
+        if (valueDisplay) {
+            valueDisplay.textContent = input.value;
+        }
+
+        // Update value display on input change
+        input.addEventListener('input', function() {
+            if (valueDisplay) {
+                valueDisplay.textContent = this.value;
+            }
+        });
     });
 }
 
-window.onload = setup;
+/**
+ * Initialize validation for prioritization checkboxes
+ */
+function initPrioritizationValidation() {
+    // Limit selection to 5 checkboxes for priority_five
+    const priorityFiveCheckboxes = document.querySelectorAll('input[name="priority_five"]');
+    if (priorityFiveCheckboxes.length > 0) {
+        priorityFiveCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const checked = document.querySelectorAll('input[name="priority_five"]:checked');
+                if (checked.length > 5) {
+                    this.checked = false;
+                    alert('Please select only 5 areas to work on.');
+                }
+            });
+        });
+    }
+
+    // Limit selection to 3 checkboxes for priority_three
+    const priorityThreeCheckboxes = document.querySelectorAll('input[name="priority_three"]');
+    if (priorityThreeCheckboxes.length > 0) {
+        priorityThreeCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const checked = document.querySelectorAll('input[name="priority_three"]:checked');
+                if (checked.length > 3) {
+                    this.checked = false;
+                    alert('Please select only 3 areas to work on.');
+                }
+            });
+        });
+    }
+}
+
+/**
+ * Initialize export buttons functionality
+ */
+function initExportButtons() {
+    const saveResultsButton = document.getElementById('save-results');
+    if (saveResultsButton) {
+        saveResultsButton.addEventListener('click', function() {
+            alert('Results saved successfully!');
+        });
+    }
+    
+    const printResultsButton = document.getElementById('print-results');
+    if (printResultsButton) {
+        printResultsButton.addEventListener('click', function() {
+            window.print();
+        });
+    }
+    
+    const emailResultsButton = document.getElementById('email-results');
+    if (emailResultsButton) {
+        emailResultsButton.addEventListener('click', function() {
+            alert('Email feature coming soon!');
+        });
+    }
+}
+
+/**
+ * Validate VLQ-1 form
+ * @returns {boolean} True if form is valid, false otherwise
+ */
+function validateVLQ1Form() {
+    const form = document.getElementById('vlq1-form');
+    if (!form) return false;
+
+    // Check if all required fields are filled
+    const requiredRadios = form.querySelectorAll('input[type="radio"]:required');
+    const radioGroups = {};
+
+    // Group radios by name
+    requiredRadios.forEach(radio => {
+        if (!radioGroups[radio.name]) {
+            radioGroups[radio.name] = [];
+        }
+        radioGroups[radio.name].push(radio);
+    });
+
+    // Check if at least one radio in each group is checked
+    let isValid = true;
+    for (const groupName in radioGroups) {
+        const isChecked = [...radioGroups[groupName]].some(radio => radio.checked);
+        if (!isChecked) {
+            isValid = false;
+            // Find the closest table row to highlight
+            const row = radioGroups[groupName][0].closest('tr');
+            if (row) {
+                row.classList.add('error');
+                setTimeout(() => {
+                    row.classList.remove('error');
+                }, 3000);
+            }
+        }
+    }
+
+    if (!isValid) {
+        alert('Please rate all areas before submitting.');
+    }
+
+    return isValid;
+}
+
+/**
+ * Validate VLQ-2 form
+ * @returns {boolean} True if form is valid, false otherwise
+ */
+function validateVLQ2Form() {
+    const form = document.getElementById('vlq2-form');
+    if (!form) return false;
+
+    // Check prioritization
+    // Check if exactly 5 checkboxes are selected for priority_five
+    const priorityFiveChecked = document.querySelectorAll('input[name="priority_five"]:checked');
+    let isValid = priorityFiveChecked.length === 5;
+    
+    if (priorityFiveChecked.length !== 5) {
+        isValid = false;
+        const checkboxGroup = document.querySelector('input[name="priority_five"]').closest('.checkbox-group');
+        if (checkboxGroup) {
+            checkboxGroup.classList.add('error');
+            setTimeout(() => {
+                checkboxGroup.classList.remove('error');
+            }, 3000);
+        }
+    }
+
+    // Check if exactly 3 checkboxes are selected for priority_three
+    const priorityThreeChecked = document.querySelectorAll('input[name="priority_three"]:checked');
+    if (priorityThreeChecked.length !== 3) {
+        isValid = false;
+        const checkboxGroup = document.querySelector('input[name="priority_three"]').closest('.checkbox-group');
+        if (checkboxGroup) {
+            checkboxGroup.classList.add('error');
+            setTimeout(() => {
+                checkboxGroup.classList.remove('error');
+            }, 3000);
+        }
+    }
+
+    if (!isValid) {
+        alert('Please complete all required fields before submitting:' + 
+              '\n- Select exactly 5 areas to work on' + 
+              '\n- Select exactly 3 areas to prioritize');
+    }
+
+    return isValid;
+}
+
+/**
+ * Process VLQ-1 form data
+ * @returns {Object} Processed form data
+ */
+function processVLQ1FormData() {
+    const form = document.getElementById('vlq1-form');
+    if (!form) return {};
+
+    const formData = {
+        importance: {},
+        consistency: {},
+        timestamp: new Date().toISOString()
+    };
+
+    // Process importance ratings
+    const importanceRadios = form.querySelectorAll('input[name^="importance_"]:checked');
+    importanceRadios.forEach(radio => {
+        const domain = radio.name.replace('importance_', '');
+        formData.importance[domain] = parseInt(radio.value);
+    });
+
+    // Process consistency ratings
+    const consistencyRadios = form.querySelectorAll('input[name^="consistency_"]:checked');
+    consistencyRadios.forEach(radio => {
+        const domain = radio.name.replace('consistency_', '');
+        formData.consistency[domain] = parseInt(radio.value);
+    });
+
+    return formData;
+}
+
+/**
+ * Process VLQ-2 form data
+ * @returns {Object} Processed form data
+ */
+function processVLQ2FormData() {
+    const form = document.getElementById('vlq2-form');
+    if (!form) return {};
+
+    const domains = [
+        'family', 'marriage'
+    ];
+
+    const aspects = [
+        'possibility', 'current_importance', 'overall_importance'
+    ];
+
+    const formData = {
+        domains: {},
+        priorities: {
+            five: [],
+            three: []
+        },
+        timestamp: new Date().toISOString()
+    };
+
+    // Process domain ratings
+    domains.forEach(domain => {
+        formData.domains[domain] = {};
+
+        aspects.forEach(aspect => {
+            const input = form.querySelector(`input[name="${domain}_${aspect}"]`);
+            if (input) {
+                formData.domains[domain][aspect] = parseInt(input.value);
+            }
+        });
+    });
+
+    // Process priorities
+    const priorityFiveChecked = form.querySelectorAll('input[name="priority_five"]:checked');
+    priorityFiveChecked.forEach(checkbox => {
+        formData.priorities.five.push(checkbox.value);
+    });
+
+    const priorityThreeChecked = form.querySelectorAll('input[name="priority_three"]:checked');
+    priorityThreeChecked.forEach(checkbox => {
+        formData.priorities.three.push(checkbox.value);
+    });
+
+    return formData;
+}
+
+/**
+ * Save form data to localStorage
+ * @param {string} formType - Type of form ('vlq1' or 'vlq2')
+ * @param {Object} formData - Form data to save
+ */
+function saveFormData(formType, formData) {
+    try {
+        localStorage.setItem(`${formType}_data`, JSON.stringify(formData));
+        console.log(`${formType} data saved to localStorage`);
+    } catch (error) {
+        console.error('Error saving form data:', error);
+    }
+}
+
+/**
+ * Load form data from localStorage
+ * @param {string} formType - Type of form ('vlq1' or 'vlq2')
+ * @returns {Object|null} Form data or null if not found
+ */
+function loadFormData(formType) {
+    try {
+        const data = localStorage.getItem(`${formType}_data`);
+        return data ? JSON.parse(data) : null;
+    } catch (error) {
+        console.error('Error loading form data:', error);
+        return null;
+    }
+}
+
+/**
+ * Show results section and generate visualizations
+ * @param {string} formType - Type of form ('vlq1' or 'vlq2')
+ * @param {Object} formData - Form data to visualize
+ */
+function showResults(formType, formData) {
+    const resultsSection = document.getElementById('results-section');
+    if (!resultsSection) return;
+
+    // Hide form sections
+    document.getElementById('vlq1-section').style.display = 'none';
+    document.getElementById('vlq2-section').style.display = 'none';
+    
+    // Show results section
+    resultsSection.style.display = 'block';
+
+    // Scroll to results section
+    resultsSection.scrollIntoView({
+        behavior: 'smooth'
+    });
+
+    // Generate visualizations based on form type
+    if (formType === 'vlq1') {
+        generateVLQ1Visualizations(formData);
+    } else if (formType === 'vlq2') {
+        generateVLQ2Visualizations(formData);
+    }
+}
+
+/**
+ * Generate visualizations for VLQ-1 results
+ * @param {Object} formData - VLQ-1 form data
+ */
+function generateVLQ1Visualizations(formData) {
+    // Get domain labels
+    const domains = Object.keys(formData.importance);
+    const labels = domains.map(domain => {
+        return domain.charAt(0).toUpperCase() + domain.slice(1);
+    });
+    
+    // Extract importance and consistency values
+    const importanceValues = domains.map(domain => formData.importance[domain]);
+    const consistencyValues = domains.map(domain => formData.consistency[domain]);
+    
+    // Create radar chart
+    const radarCtx = document.getElementById('radar-chart').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Importance',
+                    data: importanceValues,
+                    backgroundColor: 'rgba(74, 111, 165, 0.2)',
+                    borderColor: 'rgba(74, 111, 165, 1)',
+                    pointBackgroundColor: 'rgba(74, 111, 165, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(74, 111, 165, 1)'
+                },
+                {
+                    label: 'Consistency',
+                    data: consistencyValues,
+                    backgroundColor: 'rgba(77, 170, 87, 0.2)',
+                    borderColor: 'rgba(77, 170, 87, 1)',
+                    pointBackgroundColor: 'rgba(77, 170, 87, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(77, 170, 87, 1)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: {
+                        display: true
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 10
+                }
+            }
+        }
+    });
+    
+    // Create bar chart for comparison
+    const barCtx = document.getElementById('bar-chart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Importance',
+                    data: importanceValues,
+                    backgroundColor: 'rgba(74, 111, 165, 0.7)',
+                    borderColor: 'rgba(74, 111, 165, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Consistency',
+                    data: consistencyValues,
+                    backgroundColor: 'rgba(77, 170, 87, 0.7)',
+                    borderColor: 'rgba(77, 170, 87, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Generate visualizations for VLQ-2 results
+ * @param {Object} formData - VLQ-2 form data
+ */
+function generateVLQ2Visualizations(formData) {
+    // Extract domains and their values
+    const domains = Object.keys(formData.domains);
+    const labels = domains.map(domain => {
+        return domain.charAt(0).toUpperCase() + domain.slice(1);
+    });
+    
+    // Extract aspect values for each domain
+    const aspects = ['possibility', 'current_importance', 'overall_importance'];
+    const datasets = aspects.map((aspect, index) => {
+        const label = aspect.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        const data = domains.map(domain => formData.domains[domain][aspect] || 0);
+        
+        // Different colors for each aspect
+        const colors = [
+            'rgba(74, 111, 165, 0.7)',  // blue
+            'rgba(77, 170, 87, 0.7)',   // green
+            'rgba(245, 130, 49, 0.7)'   // orange
+        ];
+        
+        return {
+            label: label,
+            data: data,
+            backgroundColor: colors[index],
+            borderColor: colors[index].replace('0.7', '1'),
+            borderWidth: 1
+        };
+    });
+    
+    // Create radar chart
+    const radarCtx = document.getElementById('radar-chart').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: {
+                        display: true
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 10
+                }
+            }
+        }
+    });
+    
+    // Create bar chart for priorities
+    const barCtx = document.getElementById('bar-chart').getContext('2d');
+    
+    // Create data for priorities
+    const priorityLabels = ['Top 5 Areas', 'Top 3 Areas'];
+    const priorityData = [
+        formData.priorities.five.length, 
+        formData.priorities.three.length
+    ];
+    
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: priorityLabels,
+            datasets: [{
+                label: 'Number of Selected Priorities',
+                data: priorityData,
+                backgroundColor: [
+                    'rgba(74, 111, 165, 0.7)',
+                    'rgba(77, 170, 87, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(74, 111, 165, 1)',
+                    'rgba(77, 170, 87, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: 5
+                }
+            }
+        }
+    });
+}

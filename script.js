@@ -181,11 +181,14 @@ function validateVLQ1Form() {
     if (!form) return false;
 
     // Check if all required fields are filled
-    const requiredRadios = form.querySelectorAll('input[type="radio"]:required');
+    // Instead of only selecting radios marked as required, which
+    // can miss the user's actual selection, gather all radios and
+    // validate each group by name.
+    const allRadios = form.querySelectorAll('input[type="radio"]');
     const radioGroups = {};
 
     // Group radios by name
-    requiredRadios.forEach(radio => {
+    allRadios.forEach(radio => {
         if (!radioGroups[radio.name]) {
             radioGroups[radio.name] = [];
         }
